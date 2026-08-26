@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gabriel Cruz | Relojería de Lujo</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Encabezado / Nav -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-gc">GC</div>
+            <span class="brand-name">GABRIEL CRUZ</span>
+        </div>
+        
+        <nav class="nav-menu" id="navMenu">
+            <div class="dropdown">
+                <button class="dropbtn">Menú <i class="fas fa-chevron-down"></i></button>
+                <div class="dropdown-content">
+                    <a href="yo/nosotros.html"><i class="fas fa-info-circle"></i> Sobre Nosotros</a>
+                    <a href="contacto/reloj.html"><i class="fas fa-envelope"></i> Contacto</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="header-actions">
+            <button class="cart-btn" id="openCartBtn">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section / Reloj Emblemático -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-clock-circle">
+                <div class="clock-dial">
+                    <div class="clock-hand hour-hand"></div>
+                    <div class="clock-hand minute-hand"></div>
+                    <div class="clock-hand second-hand"></div>
+                    <div class="center-dot"></div>
+                </div>
+            </div>
+            <div class="hero-text-content">
+                <h1 class="gold-title">Elegancia & Precisión</h1>
+                <p>¿Te cansaste de buscar relojes de tu estilo?</p>
+                <p class="hero-subtitle">Acá conseguís tu modelo ideal. Cuidamos cada detalle para ofrecerte piezas exclusivas con distinción y carácter.</p>
+                <button class="btn-gold" id="btnVerColeccion">Ver colección <i class="fas fa-arrow-down"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catálogo de Productos (10 Relojes) -->
+    <main class="products-section" id="productosContainer">
+        <h2 class="section-title">Colección Exclusiva</h2>
+        <div class="gold-divider"></div>
+        <div class="products-grid" id="gridProductos">
+            <!-- Cargado dinámicamente desde JS -->
+        </div>
+    </main>
+
+    <!-- Sección ¿Por qué elegimos estos relojes? -->
+    <section class="about-section" id="aboutSection">
+        <div class="about-container">
+            <h2 class="section-title">¿Por qué elegimos estos modelos?</h2>
+            <div class="gold-divider"></div>
+            <p class="about-description">
+                En <strong>Gabriel Cruz</strong> no seleccionamos relojes al azar. Cada una de las 10 piezas de nuestra colección representa un equilibrio perfecto entre la ingeniería de precisión, materiales de alta durabilidad como acero inoxidable y cristales de zafiro, y un diseño imponente. Elegimos estos modelos porque se adaptan tanto al profesional exigente como al apasionado del estilo urbano de alta gama, garantizando un accesorio que no solo da la hora, sino que impone presencia.
+            </p>
+        </div>
+    </section>
+
+    <!-- Sección de Contacto Directo / WhatsApp -->
+    <section class="contact-section" id="contactSection">
+        <div class="contact-container">
+            <h3>¿Tenés dudas o querés una atención personalizada?</h3>
+            <p>Escribinos directamente a nuestro canal oficial para asesoramiento inmediato.</p>
+            <a href="https://wa.me/5493816900041" target="_blank" class="btn-whatsapp-large">
+                <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
+            </a>
+            <p class="phone-number"><i class="fas fa-phone-alt"></i> +54 9 3816900041</p>
+        </div>
+    </section>
+
+    <!-- Carrito Flotante Modal -->
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-overlay" id="cartOverlay"></div>
+        <div class="cart-content">
+            <div class="cart-header">
+                <h3><i class="fas fa-shopping-cart"></i> Tu Carrito </h3>
+                <span class="close-cart" id="closeCart">&times;</span>
+            </div>
+            <div class="cart-body" id="cartItems">
+                <!-- Ítems del carrito insertados desde JS -->
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total-row">
+                    <span>Total Estimado:</span>
+                    <span id="cartTotalSum" class="total-amount">$0</span>
+                </div>
+                <button class="btn-whatsapp-checkout" id="btnWhatsAppCheckout">
+                    <i class="fab fa-whatsapp"></i> Finalizar compra por whattsapp
+                </button>
+                <br>
+                <br>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Administración Modal -->
+    <div class="admin-modal" id="adminModal">
+        <div class="admin-overlay" id="adminOverlay"></div>
+        <div class="admin-content">
+            <span class="close-admin" id="closeAdmin">&times;</span>
+            
+            <!-- Vista Login Admin -->
+            <div id="adminLoginView" class="admin-view">
+                <h3>Acceso Administrativo</h3>
+                <p class="admin-subtitle">Panel de control Gabriel Cruz</p>
+                <div class="form-group">
+                    <input type="email" id="adminEmail" placeholder="Correo electrónico" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="adminPass" placeholder="Contraseña" required>
+                </div>
+                <button class="btn-gold" id="btnLogin">Ingresar al Panel</button>
+            </div>
+
+            <!-- Vista Panel Admin -->
+            <div id="adminPanelVCew" class="admin-view hidden">
+                <h3>Gestión de Catálogo</h3>
+                <div class="admin-actions">
+                    <button class="btn-gold-sm" id="btnAddNewProduct"><i class="fas fa-plus"></i> Agregar Producto</button>
+                    <button class="btn-danger-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+                </div>
+                <div class="admin-products-list" id="adminProductsList">
+                    <!-- Lista editable de productos de Firestore -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de Página -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Gabriel Cruz - Relojería & Estilo. Todos los derechos reservados.</p>
+            <button class="admin-link" id="btnAdminAccess"><i class="fas fa-lock"></i> Acceso Admin</button>
+        </div>
+    </footer>
+
+    <!-- Carga de JS -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
