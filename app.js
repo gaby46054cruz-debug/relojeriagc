@@ -326,7 +326,7 @@ function enviarPedidoWhatsApp() {
     });
 
     mensaje += `*TOTAL DEL PEDIDO: $${total.toLocaleString()}*\n\n`;
-    mensaje += "Quedo a la espera para coordinar el pago y la entrega. ¡Muchas gracias!";
+    mensaje += "Quedo a la espera de su respuesta. ¡Muchas gracias!";
 
     const url = `https://api.whatsapp.com/send?phone=${NUMERO_WHATSAPP}&text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
