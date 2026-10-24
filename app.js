@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadAppData();
     applyStylesAndConfig();
     renderAll();
+    injectQuickEditCodeField();
   } catch (error) {
     console.error("Error al inicializar la tienda:", error);
   } finally {
@@ -132,7 +133,7 @@ function renderAll() {
   renderSeccionesPills();
   renderProductosPorSeccionActiva();
   renderAdminOptions();
-  adjustCartBarLayout(); // Ajusta la vista del carrito inferior sin texto "Ver Pedido"
+  adjustCartBarLayout();
 }
 
 function renderNav() {
@@ -176,7 +177,7 @@ function renderPromos() {
     const mainImg = imgs[0] || "https://via.placeholder.com/300x200?text=Promo";
 
     card.innerHTML = `
-      <div class="product-img-wrapper" onclick="openZoomImage('${mainImg}')">
+      <div class="product-img-wrapper" onclick="openZoomImage('${mainImg}', '${promo.titulo.replace(/'/g, "")}', '${(promo.descripcion || '').replace(/'/g, "")}')">
         <img src="${mainImg}" class="product-img" />
       </div>
       <div class="product-details">
@@ -237,8 +238,11 @@ function renderProductosPorSeccionActiva() {
   prods.forEach(prod => {
     const pCard = document.createElement("div");
     pCard.className = "product-card";
-    const imgUrl = prod.imgUrl || "https://via.placeholder.com/200?text=Sin+Imagen";
+    if (prod.agotado) {
+      pCard.style.opacity = "0.7";
+    }
 
+    const imgUrl = prod.imgUrl || "https://via.placeholder.com/200?text=Sin+Imagen";
     const pMinorista = parseCurrency(prod.precioNuevo);
     const pMayorista = parseCurrency(prod.precioMayorista || 0);
     const minMayorista = parseInt(prod.minMayorista || 2);
@@ -247,7 +251,8 @@ function renderProductosPorSeccionActiva() {
     pCard.innerHTML = `
       <div class="product-img-wrapper">
         ${state.isAdmin ? `<div class="quick-edit-pencil" onclick="openQuickEdit('${prod.id}')"><i class="fa-solid fa-pencil"></i></div>` : ""}
-        <img src="${imgUrl}" class="product-img" onclick="openZoomImage('${imgUrl}')" />
+        ${prod.agotado ? `<div style="position: absolute; top: 10px; left: 10px; background-color: #ff5252; color: #fff; font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 4px; z-index: 5;">AGOTADO</div>` : ""}
+        <img src="${imgUrl}" class="product-img" onclick="openZoomImage('${imgUrl}', '${prod.titulo.replace(/'/g, "")}', '${(prod.descripcion || '').replace(/'/g, "")}')" />
       </div>
       <div class="product-details">
         <span class="product-code">Cód: ${prod.codigo || "-"}</span>
@@ -258,9 +263,15 @@ function renderProductosPorSeccionActiva() {
           <span class="new-price">${formatCurrency(pMinorista)}</span>
           ${esAmbos ? `<span class="wholesale-badge">May. ${formatCurrency(pMayorista)} (c/u desde ${minMayorista} u.)</span>` : ""}
         </div>
-        <button class="btn-add-cart" type="button" onclick="addToCart('${prod.id}', '${prod.titulo.replace(/'/g, "")}', ${pMinorista}, ${pMayorista}, ${minMayorista}, '${prod.tipoVenta || 'minorista'}', '${imgUrl}', '${currentSec.nombre.replace(/'/g, "")}')">
-          <i class="fa-solid fa-cart-plus"></i> Agregar
-        </button>
+        ${prod.agotado ? `
+          <button class="btn-add-cart" type="button" disabled style="background-color: #555; color: #aaa; cursor: not-allowed;">
+            <i class="fa-solid fa-ban"></i> Sin Stock
+          </button>
+        ` : `
+          <button class="btn-add-cart" type="button" onclick="addToCart('${prod.id}', '${prod.titulo.replace(/'/g, "")}', ${pMinorista}, ${pMayorista}, ${minMayorista}, '${prod.tipoVenta || 'minorista'}', '${imgUrl}', '${currentSec.nombre.replace(/'/g, "")}')">
+            <i class="fa-solid fa-cart-plus"></i> Agregar
+          </button>
+        `}
       </div>
     `;
     grid.appendChild(pCard);
@@ -270,7 +281,7 @@ function renderProductosPorSeccionActiva() {
 // ALINEACIÓN Y REORGANIZACIÓN DEL CARRITO INFERIOR
 function adjustCartBarLayout() {
   const labelEl = document.querySelector(".cart-bar-label");
-  if (labelEl) labelEl.remove(); // Quita el texto "Ver Pedido"
+  if (labelEl) labelEl.remove();
 
   const cartContent = document.querySelector(".cart-bar-content");
   if (cartContent) {
@@ -278,6 +289,43 @@ function adjustCartBarLayout() {
     cartContent.style.gap = "15px";
   }
 }
+
+// ABRIR IMAGEN EN ZOOM CON DESCRIPCIÓN ABAJO
+window.openZoomImage = function (url, titulo = "", descripcion = "") {
+  const imgModal = document.getElementById("image-modal");
+  const modalImg = document.getElementById("modal-expanded-img");
+
+  modalImg.src = url;
+
+  let descBox = document.getElementById("modal-zoom-description");
+  if (!descBox) {
+    const zoomContainer = document.querySelector(".image-zoom-container") || imgModal;
+    descBox = document.createElement("div");
+    descBox.id = "modal-zoom-description";
+    descBox.style.marginTop = "15px";
+    descBox.style.padding = "12px 15px";
+    descBox.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+    descBox.style.border = "1px solid var(--primary-color, #00bcd4)";
+    descBox.style.borderRadius = "8px";
+    descBox.style.color = "#ffffff";
+    descBox.style.textAlign = "center";
+    descBox.style.maxWidth = "90vw";
+    descBox.style.boxSizing = "border-box";
+    zoomContainer.appendChild(descBox);
+  }
+
+  if (titulo || descripcion) {
+    descBox.innerHTML = `
+      ${titulo ? `<h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: var(--primary-color, #00bcd4);">${titulo}</h3>` : ''}
+      ${descripcion ? `<p style="margin: 0; font-size: 0.9rem; color: #dddddd; line-height: 1.4;">${descripcion}</p>` : '<p style="margin: 0; font-size: 0.85rem; color: #888;">Sin descripción detallada.</p>'}
+    `;
+    descBox.style.display = "block";
+  } else {
+    descBox.style.display = "none";
+  }
+
+  imgModal.classList.remove("hidden");
+};
 
 // CARRITO Y EVALUACIÓN MAYORISTA
 window.addToCart = function (id, titulo, precioMin, precioMay, minMay, tipoVenta, img, seccion) {
@@ -355,11 +403,6 @@ window.changeQty = function (id, delta) {
     state.cart = state.cart.filter(i => i.id !== id);
   }
   updateCartUI();
-};
-
-window.openZoomImage = function (url) {
-  document.getElementById("modal-expanded-img").src = url;
-  document.getElementById("image-modal").classList.remove("hidden");
 };
 
 // LISTENERS GENERALES
@@ -738,7 +781,8 @@ async function addSingleProduct(e) {
     precioNuevo: document.getElementById("prod-new-price").value,
     precioMayorista: tipoVenta === "ambos" ? document.getElementById("prod-wholesale-price").value : "",
     minMayorista: tipoVenta === "ambos" ? document.getElementById("prod-wholesale-min").value : "2",
-    imgUrl: document.getElementById("prod-img-url").value
+    imgUrl: document.getElementById("prod-img-url").value,
+    agotado: false
   };
 
   const ref = await addDoc(collection(db, COL_PRODUCTOS), prod);
@@ -801,7 +845,8 @@ async function saveBatchProducts(e) {
       precioNuevo: row.querySelector(".b-new-price").value,
       precioMayorista: tipoVenta === "ambos" ? row.querySelector(".b-wholesale-price").value : "",
       minMayorista: tipoVenta === "ambos" ? row.querySelector(".b-wholesale-min").value : "2",
-      imgUrl: row.querySelector(".b-img").value
+      imgUrl: row.querySelector(".b-img").value,
+      agotado: false
     };
 
     const ref = await addDoc(collection(db, COL_PRODUCTOS), prod);
@@ -841,13 +886,48 @@ async function saveWebConfig() {
   alert("Configuración web guardada");
 }
 
-// QUICK EDIT (LAPCITO)
+// INYECCIÓN DINÁMICA DEL CAMPO "CÓDIGO" Y "DISPONIBILIDAD/AGOTADO" EN EL MODAL DE EDICIÓN RÁPIDA
+function injectQuickEditCodeField() {
+  const qeForm = document.getElementById("quick-edit-form");
+  if (qeForm && !document.getElementById("qe-prod-code")) {
+    const codeGroup = document.createElement("div");
+    codeGroup.className = "form-group";
+    codeGroup.innerHTML = `
+      <label>Código / SKU</label>
+      <input type="text" id="qe-prod-code" placeholder="Ej: GC01" required />
+    `;
+    const titleGroup = qeForm.querySelector("label[for='qe-prod-title']")?.parentElement || qeForm.children[2];
+    qeForm.insertBefore(codeGroup, titleGroup);
+  }
+
+  if (qeForm && !document.getElementById("qe-prod-status")) {
+    const statusGroup = document.createElement("div");
+    statusGroup.className = "form-group";
+    statusGroup.innerHTML = `
+      <label>Disponibilidad de Stock</label>
+      <select id="qe-prod-status">
+        <option value="disponible">Disponible (En Stock)</option>
+        <option value="agotado">Agotado (Sin Stock)</option>
+      </select>
+    `;
+    const saleTypeGroup = qeForm.querySelector("#qe-sale-type")?.parentElement;
+    if (saleTypeGroup) {
+      qeForm.insertBefore(statusGroup, saleTypeGroup.nextSibling);
+    }
+  }
+}
+
+// QUICK EDIT (LAPCITO) CON CÓDIGO Y ESTADO DE AGOTADO
 window.openQuickEdit = function (prodId) {
   const prod = state.productos.find(p => p.id === prodId);
   if (!prod) return;
 
+  injectQuickEditCodeField();
+
   document.getElementById("qe-prod-id").value = prod.id;
   document.getElementById("qe-sale-type").value = prod.tipoVenta || "minorista";
+  document.getElementById("qe-prod-status").value = prod.agotado ? "agotado" : "disponible";
+  document.getElementById("qe-prod-code").value = prod.codigo || "";
   document.getElementById("qe-prod-title").value = prod.titulo;
   document.getElementById("qe-prod-desc").value = prod.descripcion || "";
   document.getElementById("qe-prod-old-price").value = prod.precioAnterior || "";
@@ -866,16 +946,19 @@ async function saveQuickEdit(e) {
   e.preventDefault();
   const id = document.getElementById("qe-prod-id").value;
   const tipoVenta = document.getElementById("qe-sale-type").value;
+  const isAgotado = document.getElementById("qe-prod-status").value === "agotado";
 
   const updated = {
     tipoVenta: tipoVenta,
+    codigo: document.getElementById("qe-prod-code").value,
     titulo: document.getElementById("qe-prod-title").value,
     descripcion: document.getElementById("qe-prod-desc").value,
     precioAnterior: document.getElementById("qe-prod-old-price").value,
     precioNuevo: document.getElementById("qe-prod-new-price").value,
     precioMayorista: tipoVenta === "ambos" ? document.getElementById("qe-wholesale-price").value : "",
     minMayorista: tipoVenta === "ambos" ? document.getElementById("qe-wholesale-min").value : "2",
-    imgUrl: document.getElementById("qe-prod-img-url").value
+    imgUrl: document.getElementById("qe-prod-img-url").value,
+    agotado: isAgotado
   };
 
   await updateDoc(doc(db, COL_PRODUCTOS, id), updated);
