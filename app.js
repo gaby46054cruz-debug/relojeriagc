@@ -39,7 +39,7 @@ let state = {
   promos: [],
   secciones: [],
   productos: [],
-  activeSectionId: null // SECCIÓN ACTIVA PARA FILTRO HORIZONTAL
+  activeSectionId: null
 };
 
 // HELPER PARSEO MONEDA
@@ -112,7 +112,6 @@ async function loadAppData() {
   const seccionesSnap = await getDocs(collection(db, COL_SECCIONES));
   state.secciones = seccionesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  // Seleccionar la primera sección de forma predeterminada
   if (state.secciones.length > 0 && !state.activeSectionId) {
     state.activeSectionId = state.secciones[0].id;
   }
@@ -133,6 +132,7 @@ function renderAll() {
   renderSeccionesPills();
   renderProductosPorSeccionActiva();
   renderAdminOptions();
+  adjustCartBarLayout(); // Ajusta la vista del carrito inferior sin texto "Ver Pedido"
 }
 
 function renderNav() {
@@ -195,7 +195,6 @@ function renderPromos() {
   });
 }
 
-// RENDERIZADO DE BOTONES REDONDEADOS DE SECCIONES (IZQ A DER)
 function renderSeccionesPills() {
   const container = document.getElementById("sections-buttons-container");
   container.innerHTML = "";
@@ -214,7 +213,6 @@ function renderSeccionesPills() {
   });
 }
 
-// RENDERIZADO DE PRODUCTOS EXCLUSIVAMENTE DE LA SECCIÓN SELECCIONADA
 function renderProductosPorSeccionActiva() {
   const categoriesContainer = document.getElementById("categories-container");
   categoriesContainer.innerHTML = "";
@@ -267,6 +265,18 @@ function renderProductosPorSeccionActiva() {
     `;
     grid.appendChild(pCard);
   });
+}
+
+// ALINEACIÓN Y REORGANIZACIÓN DEL CARRITO INFERIOR
+function adjustCartBarLayout() {
+  const labelEl = document.querySelector(".cart-bar-label");
+  if (labelEl) labelEl.remove(); // Quita el texto "Ver Pedido"
+
+  const cartContent = document.querySelector(".cart-bar-content");
+  if (cartContent) {
+    cartContent.style.justifyContent = "flex-start";
+    cartContent.style.gap = "15px";
+  }
 }
 
 // CARRITO Y EVALUACIÓN MAYORISTA
@@ -546,7 +556,6 @@ function renderAdminOptions() {
     `;
   });
 
-  // LISTA DE SECCIONES CON BOTÓN EDITAR Y ELIMINAR
   const secList = document.getElementById("admin-sections-list");
   secList.innerHTML = "";
   state.secciones.forEach(s => {
@@ -561,7 +570,6 @@ function renderAdminOptions() {
     `;
   });
 
-  // LISTA DE PROMOS CON BOTÓN EDITAR Y ELIMINAR
   const promsList = document.getElementById("admin-promos-list");
   promsList.innerHTML = "";
   state.promos.forEach(p => {
@@ -616,7 +624,6 @@ window.deleteNavItem = async function (id) {
   renderAdminOptions();
 };
 
-// CREAR Y EDITAR SECCIONES
 async function saveSection(e) {
   e.preventDefault();
   const id = document.getElementById("section-edit-id").value;
@@ -655,7 +662,7 @@ function resetSectionForm() {
 
 window.deleteSection = async function (id) {
   if (!confirm("¿Seguro que deseas eliminar esta sección?")) return;
-  await deleteDoc(doc(doc(db, COL_SECCIONES, id)));
+  await deleteDoc(doc(db, COL_SECCIONES, id));
   state.secciones = state.secciones.filter(s => s.id !== id);
   if (state.activeSectionId === id) {
     state.activeSectionId = state.secciones.length > 0 ? state.secciones[0].id : null;
@@ -663,7 +670,6 @@ window.deleteSection = async function (id) {
   renderAll();
 };
 
-// CREAR Y EDITAR PROMOCIONES
 async function savePromo(e) {
   e.preventDefault();
   const editId = document.getElementById("promo-edit-id").value;
