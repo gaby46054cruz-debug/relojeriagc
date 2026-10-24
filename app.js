@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyStylesAndConfig();
     renderAll();
     injectQuickEditCodeField();
+    injectSectionOrderField();
   } catch (error) {
     console.error("Error al inicializar la tienda:", error);
   } finally {
@@ -112,6 +113,7 @@ async function loadAppData() {
 
   const seccionesSnap = await getDocs(collection(db, COL_SECCIONES));
   state.secciones = seccionesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  sortSecciones();
 
   if (state.secciones.length > 0 && !state.activeSectionId) {
     state.activeSectionId = state.secciones[0].id;
@@ -119,6 +121,23 @@ async function loadAppData() {
 
   const productosSnap = await getDocs(collection(db, COL_PRODUCTOS));
   state.productos = productosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  sortProductos();
+}
+
+function sortSecciones() {
+  state.secciones.sort((a, b) => {
+    const ordenA = a.orden !== undefined && a.orden !== "" ? parseInt(a.orden) : 999;
+    const ordenB = b.orden !== undefined && b.orden !== "" ? parseInt(b.orden) : 999;
+    return ordenA - ordenB;
+  });
+}
+
+function sortProductos() {
+  state.productos.sort((a, b) => {
+    const codA = (a.codigo || "").toLowerCase();
+    const codB = (b.codigo || "").toLowerCase();
+    return codA.localeCompare(codB, undefined, { numeric: true, sensitivity: 'base' });
+  });
 }
 
 function applyStylesAndConfig() {
@@ -128,6 +147,8 @@ function applyStylesAndConfig() {
 }
 
 function renderAll() {
+  sortSecciones();
+  sortProductos();
   renderNav();
   renderPromos();
   renderSeccionesPills();
@@ -278,7 +299,6 @@ function renderProductosPorSeccionActiva() {
   });
 }
 
-// ALINEACIÓN Y REORGANIZACIÓN DEL CARRITO INFERIOR
 function adjustCartBarLayout() {
   const labelEl = document.querySelector(".cart-bar-label");
   if (labelEl) labelEl.remove();
@@ -290,7 +310,6 @@ function adjustCartBarLayout() {
   }
 }
 
-// ABRIR IMAGEN EN ZOOM CON DESCRIPCIÓN ABAJO
 window.openZoomImage = function (url, titulo = "", descripcion = "") {
   const imgModal = document.getElementById("image-modal");
   const modalImg = document.getElementById("modal-expanded-img");
@@ -327,7 +346,6 @@ window.openZoomImage = function (url, titulo = "", descripcion = "") {
   imgModal.classList.remove("hidden");
 };
 
-// CARRITO Y EVALUACIÓN MAYORISTA
 window.addToCart = function (id, titulo, precioMin, precioMay, minMay, tipoVenta, img, seccion) {
   const existing = state.cart.find(item => item.id === id);
   if (existing) {
@@ -405,7 +423,6 @@ window.changeQty = function (id, delta) {
   updateCartUI();
 };
 
-// LISTENERS GENERALES
 function setupEventListeners() {
   document.getElementById("close-image-btn").onclick = () => document.getElementById("image-modal").classList.add("hidden");
   document.getElementById("cart-toggle-btn").onclick = () => document.getElementById("cart-modal").classList.remove("hidden");
@@ -487,7 +504,6 @@ function setupEventListeners() {
   };
 }
 
-// ENVÍO DE PEDIDO A WHATSAPP
 function sendWhatsAppOrder() {
   if (state.cart.length === 0) return alert("El carrito está vacío");
 
@@ -518,7 +534,6 @@ function sendWhatsAppOrder() {
   window.open(link, "_blank");
 }
 
-// LOGIN Y LOGOUT
 async function handleLogin(e) {
   e.preventDefault();
   const email = document.getElementById("login-user").value;
@@ -604,7 +619,7 @@ function renderAdminOptions() {
   state.secciones.forEach(s => {
     secList.innerHTML += `
       <div class="admin-list-item">
-        <span>${s.nombre}</span>
+        <span>${s.nombre} ${s.orden ? `(Orden: ${s.orden})` : ''}</span>
         <div class="item-actions">
           <button class="btn-edit-sm" type="button" onclick="editSection('${s.id}')">Editar</button>
           <button class="btn-danger" type="button" style="width:auto; padding:2px 8px;" onclick="deleteSection('${s.id}')">X</button>
@@ -667,18 +682,39 @@ window.deleteNavItem = async function (id) {
   renderAdminOptions();
 };
 
+// INYECCIÓN DINÁMICA DEL CAMPO "ORDEN" EN EL FORMULARIO DE SECCIONES
+function injectSectionOrderField() {
+  const secForm = document.getElementById("add-section-form");
+  if (secForm && !document.getElementById("section-order-input")) {
+    const orderGroup = document.createElement("div");
+    orderGroup.className = "form-group";
+    orderGroup.innerHTML = `
+      <label>Número de Orden (1, 2, 3...)</label>
+      <input type="number" id="section-order-input" placeholder="Ej: 1" min="1" />
+    `;
+    const actions = secForm.querySelector(".modal-actions") || secForm.children[secForm.children.length - 1];
+    secForm.insertBefore(orderGroup, actions);
+  }
+}
+
 async function saveSection(e) {
   e.preventDefault();
   const id = document.getElementById("section-edit-id").value;
   const nombre = document.getElementById("section-name-input").value;
+  const ordenVal = document.getElementById("section-order-input") ? document.getElementById("section-order-input").value : "";
+
+  const secData = {
+    nombre: nombre,
+    orden: ordenVal ? parseInt(ordenVal) : 999
+  };
 
   if (id) {
-    await updateDoc(doc(db, COL_SECCIONES, id), { nombre });
+    await updateDoc(doc(db, COL_SECCIONES, id), secData);
     const idx = state.secciones.findIndex(s => s.id === id);
-    if (idx !== -1) state.secciones[idx].nombre = nombre;
+    if (idx !== -1) state.secciones[idx] = { id: id, ...secData };
   } else {
-    const ref = await addDoc(collection(db, COL_SECCIONES), { nombre });
-    state.secciones.push({ id: ref.id, nombre });
+    const ref = await addDoc(collection(db, COL_SECCIONES), secData);
+    state.secciones.push({ id: ref.id, ...secData });
     if (!state.activeSectionId) state.activeSectionId = ref.id;
   }
 
@@ -690,8 +726,14 @@ window.editSection = function (id) {
   const sec = state.secciones.find(s => s.id === id);
   if (!sec) return;
 
+  injectSectionOrderField();
+
   document.getElementById("section-edit-id").value = sec.id;
   document.getElementById("section-name-input").value = sec.nombre;
+  if (document.getElementById("section-order-input")) {
+    document.getElementById("section-order-input").value = sec.orden !== undefined && sec.orden !== 999 ? sec.orden : "";
+  }
+
   document.getElementById("save-section-btn").innerText = "Guardar Cambios";
   document.getElementById("cancel-section-edit-btn").classList.remove("hidden");
 };
@@ -699,6 +741,9 @@ window.editSection = function (id) {
 function resetSectionForm() {
   document.getElementById("section-edit-id").value = "";
   document.getElementById("section-name-input").value = "";
+  if (document.getElementById("section-order-input")) {
+    document.getElementById("section-order-input").value = "";
+  }
   document.getElementById("save-section-btn").innerText = "Crear Sección";
   document.getElementById("cancel-section-edit-btn").classList.add("hidden");
 }
@@ -787,7 +832,7 @@ async function addSingleProduct(e) {
 
   const ref = await addDoc(collection(db, COL_PRODUCTOS), prod);
   state.productos.push({ id: ref.id, ...prod });
-  renderProductosPorSeccionActiva();
+  renderAll();
   e.target.reset();
   document.getElementById("wholesale-single-fields").classList.add("hidden");
   alert("Producto creado");
@@ -853,7 +898,7 @@ async function saveBatchProducts(e) {
     state.productos.push({ id: ref.id, ...prod });
   }
 
-  renderProductosPorSeccionActiva();
+  renderAll();
   document.getElementById("batch-table-body").innerHTML = "";
   document.getElementById("batch-product-form").classList.add("hidden");
   alert(`Se guardaron ${rows.length} productos en la base de datos.`);
@@ -886,7 +931,6 @@ async function saveWebConfig() {
   alert("Configuración web guardada");
 }
 
-// INYECCIÓN DINÁMICA DEL CAMPO "CÓDIGO" Y "DISPONIBILIDAD/AGOTADO" EN EL MODAL DE EDICIÓN RÁPIDA
 function injectQuickEditCodeField() {
   const qeForm = document.getElementById("quick-edit-form");
   if (qeForm && !document.getElementById("qe-prod-code")) {
@@ -917,7 +961,6 @@ function injectQuickEditCodeField() {
   }
 }
 
-// QUICK EDIT (LAPCITO) CON CÓDIGO Y ESTADO DE AGOTADO
 window.openQuickEdit = function (prodId) {
   const prod = state.productos.find(p => p.id === prodId);
   if (!prod) return;
@@ -965,7 +1008,7 @@ async function saveQuickEdit(e) {
   const idx = state.productos.findIndex(p => p.id === id);
   if (idx !== -1) state.productos[idx] = { ...state.productos[idx], ...updated };
 
-  renderProductosPorSeccionActiva();
+  renderAll();
   document.getElementById("quick-edit-modal").classList.add("hidden");
 }
 
@@ -975,6 +1018,6 @@ async function deleteProductQuick() {
 
   await deleteDoc(doc(db, COL_PRODUCTOS, id));
   state.productos = state.productos.filter(p => p.id !== id);
-  renderProductosPorSeccionActiva();
+  renderAll();
   document.getElementById("quick-edit-modal").classList.add("hidden");
 }
