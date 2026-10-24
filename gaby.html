@@ -1,163 +1,439 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gabriel Cruz | Relojería de Lujo</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome para Iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tienda de Relojes</title>
+  <link rel="stylesheet" href="uno.css" />
+  <!-- FontAwesome para Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
 
-    <!-- Encabezado / Nav -->
-    <header class="header">
-        <div class="logo-container">
-            <div class="logo-gc">GC</div>
-            <span class="brand-name">GABRIEL CRUZ</span>
-        </div>
-        
-        <nav class="nav-menu" id="navMenu">
-            <div class="dropdown">
-                <button class="dropbtn">Menú <i class="fas fa-chevron-down"></i></button>
-                <div class="dropdown-content">
-                    <a href="yo/nosotros.html"><i class="fas fa-info-circle"></i> acerca de GC</a>
-                    <a href="contacto/reloj.html"><i class="fas fa-envelope"></i> Contacto</a>
-                </div>
-            </div>
-        </nav>
+  <!-- PANTALLA DE CARGA INICIAL -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="spinner"></div>
+    <p>Cargando tienda...</p>
+  </div>
 
-        <div class="header-actions">
-            <button class="cart-btn" id="openCartBtn">
-                <i class="fas fa-shopping-bag"></i>
-                <span class="cart-count" id="cartCount">0</span>
-            </button>
+  <!-- ENCABEZADO SUPERIOR COMPACTO -->
+  <header id="main-header" class="main-header">
+    <div class="header-content">
+      <div class="brand-info">
+        <img id="header-logo" src="https://via.placeholder.com/50" alt="Logo" class="header-logo-img" />
+        <div>
+          <h1 id="header-title">Mi Tienda</h1>
+          <p id="header-desc">Catálogo Oficial</p>
         </div>
-    </header>
+      </div>
+      <!-- Menú de navegación dinámico -->
+      <nav id="header-nav" class="header-nav"></nav>
+    </div>
+  </header>
 
-    <!-- Hero Section / Reloj Emblemático -->
-    <section class="hero-section">
-        <div class="hero-container">
-            <div class="hero-clock-circle">
-                <div class="clock-dial">
-                    <div class="clock-hand hour-hand"></div>
-                    <div class="clock-hand minute-hand"></div>
-                    <div class="clock-hand second-hand"></div>
-                    <div class="center-dot"></div>
-                </div>
-            </div>
-            <div class="hero-text-content">
-                <h1 class="gold-title">Elegancia & Precisión</h1>
-                <p>¿Te cansaste de buscar relojes de tu estilo?</p>
-                <p class="hero-subtitle">Acá conseguís tu modelo ideal. Cuidamos cada detalle para ofrecerte piezas exclusivas con distinción y carácter.</p>
-                <button class="btn-gold" id="btnVerColeccion">Ver colección <i class="fas fa-arrow-down"></i></button>
-            </div>
-        </div>
+  <!-- CONTENIDO PRINCIPAL DE LA TIENDA -->
+  <main id="app-container" class="app-container hidden">
+
+    <!-- SECCIÓN DE OFERTAS / PROMOCIONES -->
+    <section id="offers-section" class="offers-section hidden">
+      <h2 class="section-title"><i class="fa-solid fa-tags"></i> Ofertas Especiales</h2>
+      <div id="offers-carousel-wrapper" class="offers-carousel-wrapper">
+        <button id="carousel-prev-btn" class="carousel-nav-btn prev-btn hidden" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+        <div id="offers-container" class="offers-container"></div>
+        <button id="carousel-next-btn" class="carousel-nav-btn next-btn hidden" type="button"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
     </section>
 
-    <!-- Catálogo de Productos (10 Relojes) -->
-    <main class="products-section" id="productosContainer">
-        <h2 class="section-title">Colección Exclusiva</h2>
-        <div class="gold-divider"></div>
-        <div class="products-grid" id="gridProductos">
-            <!-- Cargado dinámicamente desde JS -->
+    <!-- BARRA HORIZONAL DE SECCIONES (BOTONES REDONDEADOS IZQ A DER) -->
+    <nav class="sections-bar-wrapper">
+      <div id="sections-buttons-container" class="sections-buttons-container"></div>
+    </nav>
+
+    <!-- CONTENEDOR DE PRODUCTOS FILTRADOS POR SECCIÓN -->
+    <section id="categories-container" class="categories-container"></section>
+
+  </main>
+
+  <!-- BARRA FIJA INFERIOR - CARRITO -->
+  <div id="cart-bar" class="cart-bar">
+    <div class="cart-bar-content" id="cart-toggle-btn">
+      <div class="cart-icon-wrapper">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cart-count" class="cart-badge">0</span>
+      </div>
+      <span class="cart-bar-label">Ver Pedido</span>
+      <span id="cart-total-bar" class="cart-bar-total">$0,00</span>
+    </div>
+  </div>
+
+  <!-- MODAL DEL CARRITO -->
+  <div id="cart-modal" class="modal hidden">
+    <div class="modal-content cart-modal-content">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-cart-shopping"></i> Tu Carrito</h2>
+        <button id="close-cart-btn" class="close-btn" type="button">&times;</button>
+      </div>
+      <div id="cart-items-container" class="cart-items-container"></div>
+      <div class="cart-summary">
+        <div class="cart-total-line">
+          <span>Total:</span>
+          <span id="cart-modal-total">$0,00</span>
         </div>
-    </main>
+        <button id="checkout-whatsapp-btn" class="btn-whatsapp" type="button">
+          <i class="fa-brands fa-whatsapp"></i> Enviar Pedido por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
 
-    <!-- Sección ¿Por qué elegimos estos relojes? -->
-    <section class="about-section" id="aboutSection">
-        <div class="about-container">
-            <h2 class="section-title">¿Te interesa una página como esta para incrementar tus ventas?</h2>
-            <div class="gold-divider"></div>
-            <p class="about-description">
-                En <strong>Gabriel Cruz</strong> Hola, soy Gabriel Cruz, desarrollador de este sitio web. Diseñé y creé esta plataforma desde cero, y puedo desarrollar la web que tu proyecto necesita: desde tiendas online y catálogos interactivos hasta portfolios exclusivos.
+  <!-- MODAL ZOOM IMAGEN -->
+  <div id="image-modal" class="modal hidden">
+    <span id="close-image-btn" class="close-btn image-close">&times;</span>
+    <div class="image-zoom-container">
+      <img id="modal-expanded-img" src="" alt="Imagen ampliada" />
+    </div>
+  </div>
 
-<br>¿Te interesa una página como esta o totalmente a tu medida?
+  <!-- BOTÓN FLOTANTE DISCRETO (CANDADO ADMIN) -->
+  <button id="admin-trigger-btn" class="admin-trigger-btn" type="button" title="Acceso Administrador">
+    <i class="fa-solid fa-lock"></i>
+  </button>
 
-<br>Contactame directamente a través del botón de WhatsApp en esta misma página y la armamos juntos.
-            </p>
+  <!-- MODAL LOGIN ADMIN -->
+  <div id="login-modal" class="modal hidden">
+    <div class="modal-content login-modal-content">
+      <div class="modal-header">
+        <h2>Acceso Administrador</h2>
+        <button id="close-login-btn" class="close-btn" type="button">&times;</button>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Correo Electrónico (Firebase)</label>
+          <input type="email" id="login-user" required placeholder="correo@ejemplo.com" />
         </div>
-    </section>
-
-    <!-- Sección de Contacto Directo / WhatsApp -->
-    <section class="contact-section" id="contactSection">
-        <div class="contact-container">
-            <h3>¿Tenés dudas sobre algún modelo o querés una página como esta para tu negocio?</h3>
-            <p>Hablá directamente conmigo, Gabriel Cruz, haciendo clic en el botón de abajo o escribime al WhatsApp.</p>
-            <a href="https://wa.me/5493816900041" target="_blank" class="btn-whatsapp-large">
-                <i class="fab fa-whatsapp"></i> contactame en WhatsApp
-            </a>
-            <p class="phone-number"><i class="fas fa-phone-alt"></i> 3816900041</p>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="login-pass" required placeholder="******" />
         </div>
-    </section>
+        <button type="submit" class="btn-primary">Ingresar</button>
+      </form>
+    </div>
+  </div>
 
-    <!-- Carrito Flotante Modal -->
-    <div class="cart-modal" id="cartModal">
-        <div class="cart-overlay" id="cartOverlay"></div>
-        <div class="cart-content">
-            <div class="cart-header">
-                <h3><i class="fas fa-shopping-cart"></i> Tu Carrito </h3>
-                <span class="close-cart" id="closeCart">&times;</span>
-            </div>
-            <div class="cart-body" id="cartItems">
-                <!-- Ítems del carrito insertados desde JS -->
-            </div>
-            <div class="cart-footer">
-                <div class="cart-total-row">
-                    <span>Total Estimado:</span>
-                    <span id="cartTotalSum" class="total-amount">$0</span>
-                </div>
-                <button class="btn-whatsapp-checkout" id="btnWhatsAppCheckout">
-                    <i class="fab fa-whatsapp"></i> Finalizar compra por whattsapp
-                </button>
-                <br>
-                <br>
-            </div>
-        </div>
+  <!-- PANEL DE ADMINISTRACIÓN -->
+  <div id="admin-bar" class="admin-bar hidden">
+    <div class="admin-bar-header">
+      <span><i class="fa-solid fa-user-gear"></i> Modo Administrador</span>
+      <button id="admin-logout-btn" class="btn-logout" type="button" title="Cerrar Sesión"><i class="fa-solid fa-power-off"></i></button>
+    </div>
+    <div class="admin-nav-buttons">
+      <button id="btn-tab-logo" class="admin-tab-btn active" type="button"><i class="fa-solid fa-id-card"></i> Logo/Info</button>
+      <button id="btn-tab-nav" class="admin-tab-btn" type="button"><i class="fa-solid fa-bars"></i> Menú Encabezado</button>
+      <button id="btn-tab-offers" class="admin-tab-btn" type="button"><i class="fa-solid fa-rectangle-ad"></i> Promociones</button>
+      <button id="btn-tab-sections" class="admin-tab-btn" type="button"><i class="fa-solid fa-layer-group"></i> Secciones</button>
+      <button id="btn-tab-products" class="admin-tab-btn" type="button"><i class="fa-solid fa-box-open"></i> Productos</button>
+      <button id="btn-tab-config" class="admin-tab-btn" type="button"><i class="fa-solid fa-sliders"></i> Editar Web</button>
     </div>
 
-    <!-- Panel de Administración Modal -->
-    <div class="admin-modal" id="adminModal">
-        <div class="admin-overlay" id="adminOverlay"></div>
-        <div class="admin-content">
-            <span class="close-admin" id="closeAdmin">&times;</span>
-            
-            <!-- Vista Login Admin -->
-            <div id="adminLoginView" class="admin-view">
-                <h3>Acceso Administrativo</h3>
-                <p class="admin-subtitle">Panel de control Gabriel Cruz</p>
-                <div class="form-group">
-                    <input type="email" id="adminEmail" placeholder="Correo electrónico" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" id="adminPass" placeholder="Contraseña" required>
-                </div>
-                <button class="btn-gold" id="btnLogin">Ingresar al Panel</button>
-            </div>
+    <div class="admin-tab-content">
 
-            <!-- Vista Panel Admin -->
-            <div id="adminPanelVCew" class="admin-view hidden">
-                <h3>Gestión de Catálogo</h3>
-                <div class="admin-actions">
-                    <button class="btn-gold-sm" id="btnAddNewProduct"><i class="fas fa-plus"></i> </button>
-                    <button class="btn-danger-sm" id="btnLogout"><i class="fas fa-sign-out-alt"></i> </button>
-                </div>
-                <div class="admin-products-list" id="adminProductsList">
-                    <!-- Lista editable de productos de Firestore -->
-                </div>
-            </div>
+      <!-- TAB 1: LOGO E INFO -->
+      <div id="tab-logo" class="tab-panel active">
+        <h3>Información General de la Empresa</h3>
+        <div class="form-group">
+          <label>Nombre de la Empresa</label>
+          <input type="text" id="admin-company-name" />
         </div>
+        <div class="form-group">
+          <label>URL Logo</label>
+          <input type="text" id="admin-company-logo" />
+        </div>
+        <div class="form-group">
+          <label>Descripción Breve</label>
+          <textarea id="admin-company-desc"></textarea>
+        </div>
+        <button id="save-company-info-btn" class="btn-primary" type="button">Guardar Información</button>
+      </div>
+
+      <!-- TAB 2: MENÚ ENCABEZADO -->
+      <div id="tab-nav" class="tab-panel">
+        <h3>Botones de Menú Superior</h3>
+        <form id="add-nav-form" class="admin-form-styled">
+          <div class="form-group">
+            <label>Nombre del Botón</label>
+            <input type="text" id="nav-item-name" placeholder="Ej: Ubicación, Contacto" required />
+          </div>
+          <div class="form-group">
+            <label>URL Destino</label>
+            <input type="text" id="nav-item-link" placeholder="https://..." required />
+          </div>
+          <button type="submit" class="btn-primary">Agregar Botón de Menú</button>
+        </form>
+        <div id="admin-nav-list" class="admin-list"></div>
+      </div>
+
+      <!-- TAB 3: PROMOCIONES (CREAR / EDITAR) -->
+      <div id="tab-offers" class="tab-panel">
+        <h3>Crear / Editar Promoción</h3>
+        <form id="promo-form" class="admin-product-form">
+          <input type="hidden" id="promo-edit-id" />
+          <div class="form-group">
+            <label>Título de la Promo</label>
+            <input type="text" id="promo-title" placeholder="Ej: Super Oferta Relojes" required />
+          </div>
+          <div class="form-group">
+            <label>Descripción / Detalle</label>
+            <textarea id="promo-desc"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Precio Anterior (Opcional)</label>
+              <input type="text" id="promo-old-price" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label>Precio Promo (Obligatorio)</label>
+              <input type="text" id="promo-new-price" placeholder="0.00" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>URLs de Imágenes (Separadas por coma si son varias)</label>
+            <textarea id="promo-images-urls" placeholder="https://img1.jpg, https://img2.jpg"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="submit" id="save-promo-btn" class="btn-primary">Guardar Promoción</button>
+            <button type="button" id="cancel-promo-edit-btn" class="btn-danger hidden">Cancelar Edición</button>
+          </div>
+        </form>
+        <h4>Promociones Actuales</h4>
+        <div id="admin-promos-list" class="admin-list"></div>
+      </div>
+
+      <!-- TAB 4: SECCIONES -->
+      <div id="tab-sections" class="tab-panel">
+        <h3>Gestionar Secciones de Productos</h3>
+        <form id="add-section-form" class="admin-form-styled">
+          <input type="hidden" id="section-edit-id" />
+          <div class="form-group">
+            <label>Nombre de la Sección</label>
+            <input type="text" id="section-name-input" placeholder="Ej: Relojes, Perfumes, Accesorios" required />
+          </div>
+          <div class="modal-actions">
+            <button type="submit" id="save-section-btn" class="btn-primary">Crear Sección</button>
+            <button type="button" id="cancel-section-edit-btn" class="btn-danger hidden">Cancelar</button>
+          </div>
+        </form>
+        <div id="admin-sections-list" class="admin-list"></div>
+      </div>
+
+      <!-- TAB 5: PRODUCTOS (INDIVIDUAL Y POR TANDA CON TABLA) -->
+      <div id="tab-products" class="tab-panel">
+        <h3>Carga de Productos</h3>
+        <div class="product-mode-selector">
+          <button id="mode-single-btn" class="btn-subtab active" type="button">Individual</button>
+          <button id="mode-batch-btn" class="btn-subtab" type="button">Por Tanda (Cuadro/Filas)</button>
+        </div>
+
+        <!-- FORMULARIO INDIVIDUAL -->
+        <form id="single-product-form" class="admin-product-form">
+          <div class="form-group">
+            <label>Sección</label>
+            <select id="prod-section-select" required></select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Venta / Precios</label>
+            <select id="prod-sale-type">
+              <option value="minorista">Únicamente Minorista</option>
+              <option value="ambos">Minorista y Mayorista</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Código Producto</label>
+            <input type="text" id="prod-code" placeholder="Ej: GC01" required />
+          </div>
+          <div class="form-group">
+            <label>Título / Nombre</label>
+            <input type="text" id="prod-title" required />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea id="prod-desc"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Precio Anterior (Opcional)</label>
+              <input type="text" id="prod-old-price" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label>Precio Minorista (Obligatorio)</label>
+              <input type="text" id="prod-new-price" placeholder="0.00" required />
+            </div>
+          </div>
+          <div id="wholesale-single-fields" class="wholesale-box hidden">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Precio Mayorista</label>
+                <input type="text" id="prod-wholesale-price" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Mínimo Unidades Mayorista</label>
+                <input type="number" id="prod-wholesale-min" value="2" min="2" />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>URL Imagen (Opcional)</label>
+            <input type="text" id="prod-img-url" placeholder="https://..." />
+          </div>
+          <button type="submit" class="btn-primary">Guardar Producto</button>
+        </form>
+
+        <!-- FORMULARIO POR TANDA -->
+        <div id="batch-product-container" class="admin-product-form hidden">
+          <div class="form-group">
+            <label>Sección Destino</label>
+            <select id="batch-prod-section-select" required></select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Venta para toda la Tanda</label>
+            <select id="batch-sale-type">
+              <option value="minorista">Únicamente Minorista</option>
+              <option value="ambos">Minorista y Mayorista</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Prefijo Código</label>
+              <input type="text" id="batch-code-prefix" placeholder="Ej: GC" value="GC" required />
+            </div>
+            <div class="form-group">
+              <label>Número Inicial</label>
+              <input type="number" id="batch-code-start" value="1" required />
+            </div>
+            <div class="form-group">
+              <label>Cantidad de Productos</label>
+              <input type="number" id="batch-quantity" min="1" max="50" value="3" required />
+            </div>
+          </div>
+          <button type="button" id="btn-generate-batch-table" class="btn-primary" style="margin-bottom:15px;">Generar Filas para Tanda</button>
+
+          <form id="batch-product-form" class="hidden">
+            <div class="batch-table-wrapper">
+              <table class="batch-table">
+                <thead>
+                  <tr id="batch-table-header">
+                    <th>Cód</th>
+                    <th>Título</th>
+                    <th>Descripción</th>
+                    <th>P. Anterior</th>
+                    <th>P. Minorista</th>
+                    <th class="batch-wholesale-col hidden">P. Mayorista</th>
+                    <th class="batch-wholesale-col hidden">Min. May</th>
+                    <th>URL Imagen (Opcional)</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-table-body"></tbody>
+              </table>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:15px;">Guardar Todos los Productos de la Tanda</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 6: EDITAR WEB Y SECCIONES VISUALES -->
+      <div id="tab-config" class="tab-panel">
+        <h3>Personalización Visual Completa</h3>
+        <div class="form-group">
+          <label>Número de WhatsApp para Pedidos (Sin + ni espacios)</label>
+          <input type="text" id="admin-whatsapp-num" placeholder="Ej: 5493811234567" />
+        </div>
+        <div class="form-group">
+          <label>Color Encabezado Superior</label>
+          <input type="color" id="admin-color-header" value="#1e1e1e" />
+        </div>
+        <div class="form-group">
+          <label>Color Pie de Página / Carrito Flotante</label>
+          <input type="color" id="admin-color-footer" value="#1a1a1a" />
+        </div>
+        <div class="form-group">
+          <label>Color Fondo de Tarjetas de Productos</label>
+          <input type="color" id="admin-color-card" value="#1e1e1e" />
+        </div>
+        <div class="form-group">
+          <label>Color Botones de Compra / Acento Principal</label>
+          <input type="color" id="admin-color-primary" value="#00bcd4" />
+        </div>
+        <div class="form-group">
+          <label>Color de Fondo de la Página</label>
+          <input type="color" id="admin-color-bg" value="#121212" />
+        </div>
+        <div class="form-group">
+          <label>URL Imagen de Fondo (Opcional)</label>
+          <input type="text" id="admin-bg-image-url" placeholder="https://..." />
+        </div>
+        <button id="save-web-config-btn" class="btn-primary" type="button">Guardar Configuración Web</button>
+      </div>
+
     </div>
+  </div>
 
-    <!-- Pie de Página -->
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2026 Gabriel Cruz - Relojería & Estilo. Todos los derechos reservados.</p>
-            <button class="admin-link" id="btnAdminAccess"><i class="fas fa-lock"></i> Acceso Admin</button>
+  <!-- MODAL DE EDICIÓN RÁPIDA (LAPICITO) -->
+  <div id="quick-edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edición Rápida de Producto</h2>
+        <button id="close-quick-edit-btn" class="close-btn" type="button">&times;</button>
+      </div>
+      <form id="quick-edit-form">
+        <input type="hidden" id="qe-prod-id" />
+        <div class="form-group">
+          <label>Tipo de Venta</label>
+          <select id="qe-sale-type">
+            <option value="minorista">Únicamente Minorista</option>
+            <option value="ambos">Minorista y Mayorista</option>
+          </select>
         </div>
-    </footer>
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="qe-prod-title" required />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="qe-prod-desc"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio Anterior</label>
+            <input type="text" id="qe-prod-old-price" />
+          </div>
+          <div class="form-group">
+            <label>Precio Minorista</label>
+            <input type="text" id="qe-prod-new-price" required />
+          </div>
+        </div>
+        <div id="wholesale-quick-fields" class="wholesale-box hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Precio Mayorista</label>
+              <input type="text" id="qe-wholesale-price" />
+            </div>
+            <div class="form-group">
+              <label>Mínimo Mayorista</label>
+              <input type="number" id="qe-wholesale-min" value="2" min="2" />
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>URL Imagen (Opcional)</label>
+          <input type="text" id="qe-prod-img-url" />
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Guardar Cambios</button>
+          <button type="button" id="qe-delete-btn" class="btn-danger">Eliminar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    <!-- Carga de JS -->
-    <script type="module" src="app.js"></script>
+  <script type="module" src="uno.js"></script>
 </body>
 </html>
